@@ -146,10 +146,11 @@ export MAVEN_OPTS="-Xmx1g"
 
 ## **Running the Application**
 
-### **Prerequisites**
+### **Build Prerequisites**
+Before building the project, ensure you have:
+
 - Java 21 (JDK) installed and configured
 - Maven 3.6+ for building the project
-- A configuration properties file (recommended)
 
 ### **Build the Project**
 ```bash
@@ -160,9 +161,13 @@ cd SearchEngine
 mvn clean package
 ```
 
-This will create two JAR files:
-- `target/SearchEngine-1.0-SNAPSHOT.jar` - Basic JAR (without dependencies)
+This will create JAR file:
 - `target/SearchEngine-1.0-SNAPSHOT-jar-with-dependencies.jar` - **Recommended** (includes all dependencies)
+
+### **Run Prerequisites**
+Before running the application, ensure you have:
+
+- A valid `searchengine.properties` configuration file
 
 ### **Run the Application**
 ```bash
@@ -187,6 +192,70 @@ java -jar target/SearchEngine-1.0-SNAPSHOT-jar-with-dependencies.jar ./searcheng
 
 # Note: Configuration file is required - the demo cannot run without it
 ```
+
+#### **What Happens When You Start:**
+
+1. **Initialization**: The app loads configuration and displays:
+   - Indexing directory path
+   - Watching directory path
+   - Automatic indexing of all files in the configured directory
+
+2. **Filesystem Watching**: Starts monitoring the configured directory for changes
+   - New files are automatically indexed
+   - Modified files are re-indexed
+   - Deleted files are removed from the index
+
+3. **Interactive Search Interface**: Prompts you with:
+   ```
+   Search for words (or 'quit' to exit):
+   ```
+
+#### **How to Search:**
+
+- **Single Word**: Type one word (e.g., `java`)
+- **Multiple Words**: Type multiple words separated by spaces (e.g., `java programming`)
+  - **Logical AND**: Multiple words use AND operator (all words must be present on the same line)
+  - **Example**: `java programming` finds files containing both "java" AND "programming" on the same line
+
+#### **Search Results Display:**
+
+Results show:
+- **File count**: "Found X results for: [search terms]"
+- **File details**: File name and line number where matches were found
+- **Limited display**: Shows first 10 results, then indicates if there are more
+- **Format**: `1. filename.txt (line 5)`
+
+#### **Example Search Session:**
+
+```
+=== Search Engine ===
+Indexing directory: /path/to/documents
+Watching directory: /path/to/documents
+✅ Indexed 15 files
+✅ Filesystem watching started
+The index will automatically update when files change.
+
+=== How to use ===
+• Type one or more words to search
+• Multiple words will be searched as AND (all must be present on the same line)
+• Files are automatically indexed and watched for changes
+• Type 'quit' to exit
+
+Search for words (or 'quit' to exit): java programming
+Found 3 results for: java AND programming
+  1. tutorial.txt (line 12)
+  2. guide.md (line 8)
+  3. examples.java (line 25)
+
+Search for words (or 'quit' to exit): quit
+Cleaning up...
+Goodbye!
+```
+
+#### **Exiting the Application:**
+
+- Type `quit` or `exit` to close the application
+- The app will clean up resources and display "Goodbye!"
 
 ### 2. Programmatic Usage
 
