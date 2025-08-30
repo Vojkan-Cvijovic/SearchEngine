@@ -191,8 +191,8 @@ java -jar target/SearchEngine-1.0-SNAPSHOT-jar-with-dependencies.jar ./searcheng
 ### 2. Programmatic Usage
 
 ```java
-import service.com.demo.searchengine.SimpleTextIndexingService;
-import service.com.demo.searchengine.TextIndexingService;
+import com.demo.searchengine.service.SimpleTextIndexingService;
+import com.demo.searchengine.service.TextIndexingService;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -212,7 +212,7 @@ service.
         indexDirectory(directory);
 
         // Search for terms
-        List<SearchResult> results = service.searchAll(Arrays.asList("java programming"));
+        List<SearchResult> results = service.searchAll(Arrays.asList("java", "programming"));
 
         // Search with multiple terms (AND search)
         List<SearchResult> results = service.searchAll(Arrays.asList("java", "programming"));
@@ -221,7 +221,7 @@ service.
         PerformanceMetrics metrics = service.getPerformanceMetrics();
 System.out.
 
-        println("Health: "+metrics.getHealthSummary());
+        println("Files indexed: " + metrics.getTotalFilesIndexed());
 ```
 
 ### 3. Interactive Demo Commands
@@ -245,8 +245,8 @@ Search for words (or 'quit' to exit): quit
 ### 1. Custom Tokenizer
 
 ```java
-import tokenizer.com.demo.searchengine.Tokenizer;
-import impl.tokenizer.com.demo.searchengine.SimpleWordTokenizer;
+import com.demo.searchengine.tokenizer.Tokenizer;
+import com.demo.searchengine.tokenizer.impl.SimpleWordTokenizer;
 
 // Create custom tokenizer
 Tokenizer tokenizer = new SimpleWordTokenizer("CustomTokenizer", true, 3);
@@ -258,14 +258,11 @@ Tokenizer tokenizer = new SimpleWordTokenizer("CustomTokenizer", true, 3);
 ### 2. File System Watching
 
 ```java
-import watcher.com.demo.searchengine.FileSystemWatcher;
-import watcher.com.demo.searchengine.FileSystemWatcherConfig;
+import com.demo.searchengine.watcher.FileSystemWatcher;
+import com.demo.searchengine.watcher.FileSystemWatcherConfig;
 
 // Configure watcher
-FileSystemWatcherConfig config = FileSystemWatcherConfig.builder()
-        .watchRecursively(true)
-        .pollingInterval(1000)
-        .build();
+FileSystemWatcherConfig config = FileSystemWatcherConfig.createDefault();
 
         // Create and start watcher
         FileSystemWatcher watcher = new FileSystemWatcher(service, config);
@@ -282,48 +279,43 @@ watcher.
 ### 3. Performance Monitoring
 
 ```java
-import performance.com.demo.searchengine.PerformanceMonitor;
+import com.demo.searchengine.performance.PerformanceMonitor;
+import com.demo.searchengine.performance.PerformanceMetrics;
 
-// Get a performance monitor
-PerformanceMonitor monitor = service.getPerformanceMonitor();
+// Get performance monitor and metrics
+PerformanceMonitor performanceMonitor = new PerformanceMonitor();
+PerformanceMetrics metrics = service.getPerformanceMetrics();
 
         // Track indexing operation
-        PerformanceMonitor.IndexingOperation op = monitor.startIndexing();
+        PerformanceMonitor.IndexingOperation op = performanceMonitor.startIndexing();
 // ... perform indexing ...
-monitor.
-
-        completeIndexing(op);
+performanceMonitor.completeIndexing(op);
 
         // Track search operation
-        PerformanceMonitor.SearchOperation searchOp = monitor.startSearch();
+        PerformanceMonitor.SearchOperation searchOp = performanceMonitor.startSearch();
 // ... perform search ...
-monitor.
+performanceMonitor.completeSearch(searchOp);
 
-        completeSearch(searchOp);
-
-// Log system status
-monitor.
-
-        logSystemStatus();
-monitor.
-
-        logMemoryStatus();
+// Get performance statistics
+System.out.println("Files indexed: " + metrics.getTotalFilesIndexed());
+System.out.println("Search queries: " + metrics.getTotalSearchQueries());
+System.out.println("Memory usage: " + metrics.getCurrentMemoryUsage() / (1024 * 1024) + " MB");
 ```
 
 ### 4. File Filtering
 
 ```java
-import util.com.demo.searchengine.FileFilter;
+import com.demo.searchengine.util.FileFilter;
 
 // Create custom file filter
 FileFilter filter = FileFilter.builder()
         .maxFileSize(5 * 1024 * 1024)  // 5MB
-        .supportedExtensions(".txt", ".md", ".java")
-        .excludePatterns("*.tmp", "*.bak")
+        .indexableExtensions(Set.of(".txt", ".md", ".java"))
+        .caseSensitive(false)
         .build();
 
-// Use with service (requires setter method)
-// service.setFileFilter(filter);
+// Use with service
+service.setFileFilter(filter);
 ```
 
 ## 📁 File Type Support
@@ -353,9 +345,10 @@ You can configure which file types to watch and index by creating a custom `File
 import com.demo.searchengine.watcher.FileSystemWatcherConfig;
 
 // Create custom configuration with specific file types
-FileSystemWatcherConfig customConfig = FileSystemWatcherConfig.builder()
-    .supportedExtensions(".txt", ".md", ".java", ".custom")
-    .build();
+FileSystemWatcherConfig customConfig = FileSystemWatcherConfig.createDefault();
+
+// Or create minimal configuration
+FileSystemWatcherConfig minimalConfig = FileSystemWatcherConfig.createMinimal();
 
 // Use with FileSystemWatcher
 FileSystemWatcher watcher = new FileSystemWatcher(service, customConfig);
@@ -385,7 +378,7 @@ Set<String> extensions = new HashSet<>(Arrays.asList(
 ));
 ```
 
-**Note**: Currently, file type configuration is hardcoded and requires code changes. Future versions may support configuration via properties files.
+**Note**: Currently, file type configuration is hardcoded and requires code changes. There is no configuration file support for file types or size limits.
 
 ## 📊 Performance Tuning
 
@@ -405,19 +398,23 @@ System.out.println("Avg indexing time: " + metrics.getAverageIndexingTime());
 ### 2. Search Performance
 ```java
 // Use specific search terms
-List<SearchResult> results = service.search("specific term");
+List<SearchResult> results = service.searchAll(List.of("specific term"));
 
-// Avoid very short search terms (less than 2 characters)
-// The system automatically filters these out
+// For multiple terms (AND search)
+List<SearchResult> results = service.searchAll(Arrays.asList("term1", "term2"));
+
+// Note: The system performs AND search - all terms must be present
 ```
 
 ### 3. File System Watching Performance
 ```java
-// Adjust polling interval for large directories
-FileSystemWatcherConfig config = FileSystemWatcherConfig.builder()
-    .pollingInterval(2000)  // 2 seconds for large directories
-    .watchRecursively(false)  // Disable for very deep structures
-    .build();
+// The FileSystemWatcher uses default configuration
+// Thread pool size: 4 threads
+// Watch event timeout: 500ms
+// These values are currently hardcoded and not configurable
+
+FileSystemWatcherConfig config = FileSystemWatcherConfig.createDefault();
+FileSystemWatcher watcher = new FileSystemWatcher(service, config);
 ```
 
 ## 🚨 Troubleshooting
@@ -485,7 +482,8 @@ ls -la /path/to/watched/directory/
 
 # Option 1: Convert to supported format
 # Example: Convert .doc to .txt
-# Option 2: Add custom extension support via configuration
+# Option 2: Modify the code to add custom extension support
+# (Currently requires code changes, not configuration)
 ```
 
 ### Debug Mode
@@ -508,10 +506,13 @@ Check log files for detailed error information:
 ### 1. Complete Working Example~~~~
 
 ```java
-import service.com.demo.searchengine.SimpleTextIndexingService;
-import service.com.demo.searchengine.TextIndexingService;
-import watcher.com.demo.searchengine.FileSystemWatcher;
-import watcher.com.demo.searchengine.FileSystemWatcherConfig;
+import com.demo.searchengine.service.SimpleTextIndexingService;
+import com.demo.searchengine.service.TextIndexingService;
+import com.demo.searchengine.watcher.FileSystemWatcher;
+import com.demo.searchengine.watcher.FileSystemWatcherConfig;
+import com.demo.searchengine.core.SearchResult;
+import java.util.Arrays;
+import java.util.List;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -528,8 +529,9 @@ public class SearchEngineExample {
         // Search
         List<SearchResult> results = service.searchAll(Arrays.asList("example"));
         results.forEach(result -> {
-            System.out.println("Found in: " + result.getFilePath());
-            System.out.println("Relevance: " + result.getRelevanceScore());
+            System.out.println("Found in: " + result.getFileName());
+            System.out.println("Line: " + result.getLineNumber());
+            System.out.println("File size: " + result.getFileSize());
         });
 
         // Start file watching
@@ -546,12 +548,12 @@ public class SearchEngineExample {
 ### 2. Configuration Example
 ```properties
 # searchengine.properties
+# Only these two properties are currently supported:
 index.directory=/home/user/documents/index
 watch.directory=/home/user/documents/watch
-logging.level=INFO
-logging.file=/home/user/logs/searchengine.log
-max.file.size=10485760
-supported.extensions=.txt,.md,.java,.py,.js
+
+# Note: File size limits and supported extensions are hardcoded
+# and cannot be configured via properties file
 ```
 
 ### 3. Shell Script Example
@@ -588,10 +590,12 @@ java %JAVA_OPTS% -jar target\SearchEngine-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 ## 📚 Additional Resources
 
-- **API Reference**: See [API_REFERENCE.md](API_REFERENCE.md)
-- **Configuration Guide**: See [CONFIGURATION.md](CONFIGURATION.md)
-- **Project Status**: See [PROJECT_STATUS.md](PROJECT_STATUS.md)
-- **Implementation Plan**: See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
+- **Development Log**: See [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md)
+- **Requirements**: See [REQUIREMENTS.md](REQUIREMENTS.md)
+- **Tokenization Extension Guide**: See [TOKENIZATION_EXTENSION_GUIDE.md](TOKENIZATION_EXTENSION_GUIDE.md) - How to extend the library
+- **Concurrency & Filesystem Watching**: See [CONCURRENCY_AND_WATCHING.md](CONCURRENCY_AND_WATCHING.md) - Concurrent access and filesystem monitoring
+- **Testing**: See [TESTING.md](TESTING.md) - Testing strategy and coverage (81%)
+- **README**: See [README.md](README.md)
 
 ## 🤝 Getting Help
 

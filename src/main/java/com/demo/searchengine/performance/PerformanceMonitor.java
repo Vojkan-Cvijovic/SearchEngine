@@ -96,14 +96,6 @@ public class PerformanceMonitor {
         return metrics;
     }
 
-    /**
-     * Reset all metrics (useful for testing or periodic resets).
-     */
-    public void resetMetrics() {
-        metrics.reset();
-        logger.info("Performance metrics have been reset");
-    }
-
     // Operation context classes
     public static class IndexingOperation {
         final Instant startTime;

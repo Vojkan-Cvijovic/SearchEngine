@@ -1,13 +1,13 @@
 # Search Engine - Text Indexing Library
 
-A lightweight, extensible text indexing library built in pure Java 21. Provides fast file indexing and search capabilities with support for concurrent access, filesystem monitoring, and pluggable tokenization algorithms.
+A lightweight, extensible text indexing library built in pure Java 21. Provides fast file indexing and search capabilities with support for concurrent access, filesystem monitoring, and interface-based tokenization algorithms.
 
 ## 🚀 Features
 
 - **Fast Indexing**: Efficient in-memory inverted index with concurrent access
 - **Real-time Monitoring**: Filesystem watching with automatic index updates
-- **Extensible Tokenization**: Plugin system for custom text processing strategies
-- **Performance Monitoring**: Built-in metrics, health checks, and memory tracking
+- **Extensible Tokenization**: Interface-based system for custom text processing strategies
+- **Performance Monitoring**: Built-in metrics and memory tracking
 - **No External Dependencies**: Pure Java implementation
 - **Comprehensive Testing**: Unit tests with high coverage
 
@@ -40,7 +40,7 @@ The search engine automatically indexes these file types:
 - **Text Files**: `.txt`, `.md`
 - **Source Code**: `.java`, `.py`, `.js`, `.go`, `.sh`
 - **Data Files**: `.xml`, `.json`
-- **Custom**: Add your own extensions via configuration
+- **Custom**: Add your own extensions via code changes
 
 ### Build & Run
 ```bash
@@ -55,14 +55,22 @@ java -jar target/SearchEngine-1.0-SNAPSHOT-jar-with-dependencies.jar ./searcheng
 
 ### Basic Usage
 ```java
+import com.demo.searchengine.service.TextIndexingService;
+import com.demo.searchengine.service.SimpleTextIndexingService;
+import com.demo.searchengine.core.SearchResult;
+import com.demo.searchengine.performance.PerformanceMetrics;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
 // Create the service
 TextIndexingService service = new SimpleTextIndexingService();
 
 // Index a directory
-service.indexDirectory(Path.of("documents/"));
+service.indexAllFilesInDirectory(Path.of("documents/"));
 
 // Search for terms
-List<SearchResult> results = service.search("java programming");
+List<SearchResult> results = service.searchAll(Arrays.asList("java", "programming"));
 
 // Get performance metrics
 PerformanceMetrics metrics = service.getPerformanceMetrics();
@@ -72,9 +80,13 @@ PerformanceMetrics metrics = service.getPerformanceMetrics();
 
 ### Custom Tokenizer
 ```java
+import com.demo.searchengine.tokenizer.Tokenizer;
+import com.demo.searchengine.tokenizer.model.Token;
+import java.util.List;
+
 public class MyCustomTokenizer implements Tokenizer {
     @Override
-    public List<TokenInfo> tokenize(String content) {
+    public List<Token> tokenize(String content) {
         // Your custom tokenization logic
     }
 }
@@ -85,6 +97,8 @@ TextIndexingService service = new SimpleTextIndexingService(new MyCustomTokenize
 
 ### Custom Index Implementation
 ```java
+import com.demo.searchengine.core.Index;
+
 public class MyCustomIndex implements Index {
     // Implement Index interface methods
 }
@@ -107,6 +121,9 @@ mvn test
 ## 📚 Documentation
 
 - **[User Guide](USER_GUIDE.md)** - Complete usage instructions, configuration, and examples
+- **[Tokenization Extension Guide](TOKENIZATION_EXTENSION_GUIDE.md)** - How to extend the library with custom tokenization algorithms
+- **[Concurrency & Filesystem Watching](CONCURRENCY_AND_WATCHING.md)** - How the library handles concurrent access and filesystem changes
+- **[Testing](TESTING.md)** - Testing strategy, coverage (81%), and test types
 - **[Development Log](DEVELOPMENT_LOG.md)** - Current status, future work, and ideas
 - **[Requirements](REQUIREMENTS.md)** - Original task requirements
 
@@ -116,6 +133,6 @@ mvn test
 
 **🔄 NEXT**: Advanced search features and performance optimizations.
 
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed status.
+See [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md) for detailed status.
 
 

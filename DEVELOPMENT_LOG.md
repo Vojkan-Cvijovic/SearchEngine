@@ -22,7 +22,7 @@
 ## Future Work Ideas 🚀
 
 ### Configuration & Tuning
-- **Multiple Watch Directories**: Allow watching multiple folders simultaneously
+- **Multiple Watch Directories**: Allow watching multiple folders simultaneously, instead of single directory.
 - **File Type Filters**: Configurable file extensions to watch/index
 - **Memory Tuning**: Configurable index size, right now index will grow without any control, LRU eviction, memory monitoring, configurable limits
 - **Thread Pool Sizing**: Adjustable thread counts for indexing/watching
@@ -41,4 +41,15 @@
 - **Lazy Loading**: Load file content only when needed
 
 
-*Last updated: [Current Date]*
+---
+
+## 📚 Documentation
+
+- **[README.md](README.md)** - Project overview and quick start
+- **[USER_GUIDE.md](USER_GUIDE.md)** - Complete usage instructions and examples
+- **[REQUIREMENTS.md](REQUIREMENTS.md)** - Original task requirements
+- **[TOKENIZATION_EXTENSION_GUIDE.md](TOKENIZATION_EXTENSION_GUIDE.md)** - How to extend with custom tokenization
+- **[CONCURRENCY_AND_WATCHING.md](CONCURRENCY_AND_WATCHING.md)** - Concurrent access and filesystem monitoring
+- **[TESTING.md](TESTING.md)** - Testing strategy and coverage (81%)
+
+*Last updated: 30.8.2025*

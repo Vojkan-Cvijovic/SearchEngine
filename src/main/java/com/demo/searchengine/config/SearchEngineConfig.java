@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Configuration loader for Search Engine application. Loads configuration from properties file with validation and
+ * Configuration loader for Search Engine application. Loads configuration from a properties file with validation and
  * fallbacks.
  */
 public class SearchEngineConfig {
@@ -45,8 +45,8 @@ public class SearchEngineConfig {
         this.indexDirectory = resolveIndexDirectory();
         this.watchDirectory = resolveWatchDirectory();
 
-        logger.info("SearchEngine configuration loaded from: " + configFilePath + " - Index: " + indexDirectory
-                + ", Watch: " + watchDirectory);
+        logger.info("SearchEngine configuration loaded from: {} - Index: {}, Watch: {}", configFilePath,
+            indexDirectory, watchDirectory);
     }
 
     /**
@@ -67,9 +67,9 @@ public class SearchEngineConfig {
 
         try (final InputStream fileStream = readFile(configFile)) {
             props.load(fileStream);
-            logger.info("Configuration loaded from: " + configFile.toAbsolutePath());
+            logger.info("Configuration loaded from: {}", configFile.toAbsolutePath());
         } catch (final IOException e) {
-            logger.error("Error reading configuration file: " + e.getMessage());
+            logger.error("Error reading configuration file: {}", e.getMessage());
             throw new IOException("Failed to read configuration file: " + configFile, e);
         }
 
@@ -132,7 +132,7 @@ public class SearchEngineConfig {
             throw new IllegalArgumentException("Invalid watch directory path in configuration: " + configValue);
         }
 
-        logger.info("Using configured watch directory: " + path);
+        logger.info("Using configured watch directory: {}", path);
         return path;
     }
 
@@ -158,11 +158,7 @@ public class SearchEngineConfig {
         }
 
         // Check for paths with invalid characters (basic validation)
-        if (pathString.contains("\0") || pathString.contains("\n") || pathString.contains("\r")) {
-            return false;
-        }
-
-        return true;
+        return !pathString.contains("\0") && !pathString.contains("\n") && !pathString.contains("\r");
     }
 
     /**
@@ -232,7 +228,7 @@ public class SearchEngineConfig {
             logger.info("Directory validation successful");
 
         } catch (final IOException e) {
-            logger.error("Directory validation failed: " + e.getMessage());
+            logger.error("Directory validation failed: {}", e.getMessage());
             throw e;
         }
     }
